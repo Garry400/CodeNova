@@ -135,5 +135,5 @@ MIT License. See `LICENSE` file for more info.
 
 ## ✨ Credits
 
-Developed as a 5th semester Machine Learning Minor project by [Your Team Name].  
-Mentored by [Mentor Name if applicable].
+Developed as a 5th semester Machine Learning Minor project by Pushpendra Meena, Nimish Baghwale, Puru Asthana.  
+Mentored by Amit Shrivastav.
