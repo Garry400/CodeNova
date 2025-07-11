@@ -1,22 +1,23 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import RequireAuth from "./utils/RequireAuth";
 
 function App() {
-  const [ping, setPing] = useState("");
-
-  useEffect(() => {
-    axios.get("http://localhost:8000/ping").then((res) => {
-      setPing(res.data.message);
-    });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>Welcome to CodeNova 🚀</h1>
-      <p>Backend says: {ping}</p>
-    </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route
+        path="/dashboard"
+        element={
+          <RequireAuth>
+            <Dashboard />
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
 
 export default App;
-
