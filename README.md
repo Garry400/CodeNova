@@ -1,39 +1,39 @@
-# CodeNova (🏗️ Project Codename)
+# CodeNova
 
 A competitive programming platform inspired by LeetCode, HackerRank, and CodeChef, powered by machine learning and real-time contest management.
 
-## 🚀 Features
+## Features
 
-- 🔐 User Sign Up / Sign In
-- 🧠 Practice Mode with ML-suggested problems and personalized code feedback
-- 🎯 Contest Mode with admin-hosted competitions and real-time leaderboards
-- 💻 In-browser code editor with language selection and test case handling
-- 🤖 ML-powered code analysis and plagiarism detection
-- 👁️ Computer vision-based cheating detection during contests
+-  User Sign Up / Sign In
+-  Practice Mode with ML-suggested problems and personalized code feedback
+-  Contest Mode with admin-hosted competitions and real-time leaderboards
+-  In-browser code editor with language selection and test case handling
+-  ML-powered code analysis and plagiarism detection
+-  Computer vision-based cheating detection during contests
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-### 🔧 Frontend
+### Frontend
 - React.js
 - Tailwind CSS
 - Monaco Editor
 
-### 🧠 Backend
+### Backend
 - Python (FastAPI or Flask)
 - PostgreSQL or MongoDB
 - Judge0 API / Docker sandbox for code execution
 - JWT for authentication
 
-### 🤖 Machine Learning
+### Machine Learning
 - GPT-based code feedback (OpenAI API or CodeT5)
 - Code similarity (TF-IDF + Cosine Similarity)
 - Cheating detection using OpenCV
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```
 CodeNova/
@@ -72,7 +72,7 @@ CodeNova/
 
 ---
 
-## 🧪 Getting Started (Local Setup)
+## Getting Started (Local Setup)
 
 ### 1. Clone the repo
 ```bash
@@ -105,7 +105,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/codenova
 
 ---
 
-## 🎯 Roadmap
+## Roadmap
 
 - [x] User authentication (Sign Up / Sign In)
 - [ ] Code editor integration (Monaco + Judge0)
@@ -117,7 +117,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/codenova
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repo  
 2. Create your feature branch (`git checkout -b feat/amazing-feature`)  
@@ -127,13 +127,13 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/codenova
 
 ---
 
-## 📄 License
+## License
 
 MIT License. See `LICENSE` file for more info.
 
 ---
 
-## ✨ Credits
+## Credits
 
 Developed as a 5th semester Machine Learning Minor project by Pushpendra Meena, Nimish Baghwale, Puru Asthana.  
 Mentored by Dr Amit Shrivastav.
