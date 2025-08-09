@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { Code2, Github, Mail, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -16,11 +17,12 @@ const Login = () => {
     password: "",
     rememberMe: false
   });
+  const [accountType, setAccountType] = useState<"student" | "faculty">("student");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle login logic here
-    console.log("Login attempt:", formData);
+    console.log("Login attempt:", { ...formData, accountType });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,11 +53,20 @@ const Login = () => {
             <CardHeader className="space-y-2">
               <CardTitle className="text-2xl text-center">Login to CodeNova</CardTitle>
               <CardDescription className="text-center">
-                Enter your credentials to access your account
+                {accountType === "student" ? "Join contests and solve challenges" : "Set contests and manage participants"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="flex justify-center">
+                <Tabs value={accountType} onValueChange={(v) => setAccountType(v as "student" | "faculty")} className="animate-fade-in">
+                  <TabsList className="grid grid-cols-2 w-full max-w-xs">
+                    <TabsTrigger value="student" className="hover-scale">Student</TabsTrigger>
+                    <TabsTrigger value="faculty" className="hover-scale">Faculty</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <input type="hidden" name="accountType" value={accountType} />
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input

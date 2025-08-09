@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { Code2, Github, Mail, Eye, EyeOff, User, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -19,6 +20,7 @@ const Signup = () => {
     confirmPassword: "",
     agreeToTerms: false
   });
+  const [accountType, setAccountType] = useState<"student" | "faculty">("student");
 
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
@@ -30,7 +32,7 @@ const Signup = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signup logic here
-    console.log("Signup attempt:", formData);
+    console.log("Signup attempt:", { ...formData, accountType });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,11 +77,20 @@ const Signup = () => {
             <CardHeader className="space-y-2">
               <CardTitle className="text-2xl text-center">Create Your Account</CardTitle>
               <CardDescription className="text-center">
-                Sign up to access thousands of programming challenges
+                {accountType === "student" ? "Join contests and solve challenges" : "Set contests and manage participants"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="flex justify-center">
+                <Tabs value={accountType} onValueChange={(v) => setAccountType(v as "student" | "faculty")} className="animate-fade-in">
+                  <TabsList className="grid grid-cols-2 w-full max-w-xs">
+                    <TabsTrigger value="student" className="hover-scale">Student</TabsTrigger>
+                    <TabsTrigger value="faculty" className="hover-scale">Faculty</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <input type="hidden" name="accountType" value={accountType} />
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <div className="relative">
@@ -104,7 +115,7 @@ const Signup = () => {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={accountType === "student" ? "Enter your email" : "Faculty email address"}
                       value={formData.email}
                       onChange={handleInputChange}
                       className="bg-background/50 border-primary/20 focus:border-primary pl-10"

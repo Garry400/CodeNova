@@ -12,9 +12,17 @@ import {
   ArrowRight, 
   Star,
   CheckCircle,
-  Play
+  Linkedin,
+  Instagram,
+  Mail,
+  Calendar,
+  Clock
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import nimish from "@/assets/images/nimish.jpg"
+import pushpendra from "@/assets/images/pushpendra.jpg"
+import puru from "@/assets/images/puru.jpg"
 
 const Landing = () => {
   const features = [
@@ -94,6 +102,83 @@ const Landing = () => {
     }
   ];
 
+  const creators = [
+    {
+      name: "Nimish Bagwale",
+      Image: nimish,
+      linkedin: "https://www.linkedin.com/in/nimish-bagwale-554676286/",
+      instagram: "https://www.instagram.com/nimishbagwale/",
+      email: "nimishbagwale@gmail.com"
+    },
+    {
+      name: "Pushpendra Meena",
+      Image: pushpendra,
+      linkedin: "https://www.linkedin.com/in/pushpendra-meena-34b6a02b1/",
+      instagram: "https://www.instagram.com/meenapushpendra400/",
+      email: "meenapushpendra400@gmail.com"
+    },
+    {
+      name: "Puru Asthana",
+      Image: puru,
+      linkedin: "https://www.linkedin.com/in/puru-asthana/",
+      instagram: "https://www.instagram.com/puruasthana/",
+      email: "puru.asthana20@gmail.com"
+    }
+  ];
+
+  const contests = [
+    {
+      title: "Weekly Challenge #47",
+      date: "Dec 15, 2024",
+      time: "8:00 PM EST",
+      difficulty: "Medium",
+      participants: "2.3k"
+    },
+    {
+      title: "Algorithm Master Series",
+      date: "Dec 20, 2024", 
+      time: "6:00 PM EST",
+      difficulty: "Hard",
+      participants: "1.8k"
+    },
+    {
+      title: "Beginner Bootcamp",
+      date: "Dec 22, 2024",
+      time: "7:00 PM EST", 
+      difficulty: "Easy",
+      participants: "3.1k"
+    },
+    {
+      title: "Data Structures Deep Dive",
+      date: "Dec 25, 2024",
+      time: "5:00 PM EST",
+      difficulty: "Medium",
+      participants: "2.7k"
+    },
+    {
+      title: "Holiday Code Sprint",
+      date: "Dec 30, 2024",
+      time: "9:00 PM EST",
+      difficulty: "Hard",
+      participants: "1.5k"
+    }
+  ];
+
+  // Smooth-scroll to section targets when URL has a hash
+  const location = useLocation();
+  useEffect(() => {
+    const hash = location.hash;
+    if (hash) {
+      const id = hash.replace("#", "");
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.hash]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -103,7 +188,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-8">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold bg-gradient-hero bg-clip-text text-transparent animate-fade-in-up">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold bg-gradient-hero bg-clip-text text-transparent animate-fade-in-up leading-tight py-2">
                 Level Up Your Coding Skills
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto animate-fade-in-up">
@@ -117,43 +202,17 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/signup">
-                  Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="xl" asChild>
-                <Link to="/login">
-                  <Play className="mr-2 h-5 w-5" /> Watch Demo
+                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
             
-            <div className="mt-12">
-              <div className="relative bg-gradient-card rounded-2xl p-8 shadow-strong animate-float">
-                <div className="absolute inset-0 bg-gradient-hero opacity-10 rounded-2xl"></div>
-                <div className="relative">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    <div>
-                      <div className="text-3xl font-bold text-primary">10K+</div>
-                      <div className="text-muted-foreground">Active Users</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-primary">500+</div>
-                      <div className="text-muted-foreground">Programming Challenges</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-primary">50+</div>
-                      <div className="text-muted-foreground">Live Contests Monthly</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      {/* <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
@@ -182,10 +241,10 @@ const Landing = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* How It Works Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section id="how-it-works" className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
@@ -198,15 +257,15 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <div key={index} className="text-center space-y-4">
+              <div key={index} className="realative text-center space-y-4">
                 <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-glow">
                   <span className="text-xl font-bold text-primary-foreground">{step.step}</span>
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">{step.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 -right-4 w-8">
-                    <ArrowRight className="h-6 w-6 text-primary" />
+                  <div className="hidden lg:block absolute top-8 right-2 w-8">
+                    <ArrowRight className="hidden" />
                   </div>
                 )}
               </div>
@@ -216,7 +275,7 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      {/* <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
@@ -250,10 +309,34 @@ const Landing = () => {
             ))}
           </div>
         </div>
+      </section> */}
+
+      {/* Contests Section */}
+      <section id="contests" className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+              Upcoming Contests
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Join our competitive programming contests and challenge yourself against developers worldwide.
+            </p>
+          </div>
+          
+          <div className="relative overflow-hidden py-4">
+            <div className="flex min-w-max whitespace-nowrap items-center gap-16 transform-gpu motion-safe:animate-marquee">
+              {[...contests, ...contests].map((contest, index) => (
+                <div key={index} className="text-2xl md:text-3xl font-semibold text-primary">
+                  {contest.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* About Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section id="about" className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -306,6 +389,76 @@ const Landing = () => {
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* Meet the Creators Subsection */}
+          <div className="mt-20">
+            <div className="text-center space-y-4 mb-12">
+              <h3 className="text-2xl md:text-4xl font-bold text-foreground">
+                Meet the Creators
+              </h3>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                The passionate team behind CodeNova, dedicated to revolutionizing competitive programming education.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {creators.map((creator, index) => (
+                <Card
+                  key={index}
+                  className="bg-gradient-card border-primary/10 hover:shadow-medium transition-all duration-300 hover:scale-105 text-center"
+                >
+                  <CardContent className="p-6 space-y-4">
+                    <div className="w-20 h-20 bg-gradient-primary rounded-full mx-auto flex items-center justify-center overflow-hidden">
+                      {creator.Image ? (
+                        <img
+                          src={creator.Image}
+                          alt={creator.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl font-bold text-primary-foreground">
+                          {creator.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="text-xl font-semibold text-foreground">
+                      {creator.name}
+                    </h4>
+
+                    <div className="flex justify-center space-x-4">
+                      <a
+                        href={creator.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+                      >
+                        <Linkedin className="h-5 w-5 text-primary" />
+                      </a>
+                      <a
+                        href={creator.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+                      >
+                        <Instagram className="h-5 w-5 text-primary" />
+                      </a>
+                      <a
+                        href={`mailto:${creator.email}`}
+                        className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+                      >
+                        <Mail className="h-5 w-5 text-primary" />
+                      </a>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
