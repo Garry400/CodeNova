@@ -1,10 +1,24 @@
+# backend/app/database.py
+
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# DATABASE_URL = "postgresql://postgres:datastore98@localhost/codenova"
-DATABASE_URL="postgresql://postgres:zBcFKMAgVZgHSEwscLxWHSTZHALAxzEh@yamanote.proxy.rlwy.net:29145/railway"
+# Update with your actual PostgreSQL username, password, host, port, and database name:
+DATABASE_URL = "postgresql://postgres:datastore98@localhost:5432/codenova"
 
+# Create the SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autoflush=False)
+
+# Create a configured "Session" class
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for your models
 Base = declarative_base()
+
+# Dependency: yield a DB session to FastAPI routes, then close it
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

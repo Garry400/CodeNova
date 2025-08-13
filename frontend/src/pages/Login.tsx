@@ -7,8 +7,15 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { Code2, Github, Mail, Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
+
+// ✅ Interface for backend login response
+interface LoginResponse {
+  access_token: string;
+  token_type: string;
+}
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,11 +25,49 @@ const Login = () => {
     rememberMe: false
   });
   const [accountType, setAccountType] = useState<"student" | "faculty">("student");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", { ...formData, accountType });
+
+    try {
+      // ✅ Strongly typed Axios call
+      const response = await axios.post<LoginResponse>(
+        "http://localhost:8000/auth/login",
+        {
+          email: formData.email,
+          password: formData.password,
+          accountType: accountType
+        }
+      );
+
+      const data = response.data;
+
+      // ✅ Check for missing token
+      if (!data.access_token) {
+        throw new Error("Login failed: No token received from server.");
+      }
+
+      // Store token in localStorage or sessionStorage
+      if (formData.rememberMe) {
+        localStorage.setItem("token", data.access_token);
+      } else {
+        sessionStorage.setItem("token", data.access_token);
+      }
+
+      alert("Login successful! 🎉");
+      navigate("/dashboard");
+
+    } catch (err: any) {
+      console.error("Login error:", err);
+      // ✅ Better error handling
+      const backendMsg =
+        err.response?.data?.detail ||
+        err.message ||
+        "Invalid email or password. Please try again.";
+
+      alert(backendMsg);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +112,7 @@ const Login = () => {
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <input type="hidden" name="accountType" value={accountType} />
+
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input

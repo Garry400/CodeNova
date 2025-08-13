@@ -1,36 +1,28 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes import auth
 
-# ⏬ Define FastAPI instance first
-app = FastAPI()
+# Create FastAPI app
+app = FastAPI(title="CodeNova Backend")
 
-# ⏬ CORS config (optional but recommended for frontend-backend)
+# CORS config
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or use ["http://localhost:5173"] for dev
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],  # Frontend URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ⏬ Then import routers and use `app`
-from app.routes import auth
+# Include auth routes
+# NOTE: In auth.py you already have `router = APIRouter(prefix="/auth")`
+# so we don't add another prefix here.
+app.include_router(auth.router)
 
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-
+# Health check endpoint
 @app.get("/")
 def root():
     return {"message": "CodeNova Backend is Running 🚀"}
-
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # or "*" for dev
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.get("/ping")
 def ping():
