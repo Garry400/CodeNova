@@ -1,131 +1,196 @@
 import Navigation from "@/components/Navigation";
 import { Card } from "@/components/ui/card";
-import { Code2, TrendingUp, Award, BookOpen } from "lucide-react";
+import { Flame, Sparkles, ArrowUp, Eye, MessageCircle, Verified } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 const Home = () => {
-  const topics = [
-    { name: "Array", link: "#", icon: "📊" },
-    { name: "String", link: "#", icon: "📝" },
-    { name: "Linked List", link: "#", icon: "🔗" },
-    { name: "Stack", link: "#", icon: "📚" },
-    { name: "Queue", link: "#", icon: "🎯" },
-    { name: "Tree", link: "#", icon: "🌳" },
-    { name: "Graph", link: "#", icon: "🕸️" },
-    { name: "Dynamic Programming", link: "#", icon: "💡" },
-    { name: "Greedy", link: "#", icon: "🎲" },
-    { name: "Backtracking", link: "#", icon: "🔄" },
-    { name: "Binary Search", link: "#", icon: "🔍" },
-    { name: "Sorting", link: "#", icon: "📈" },
-  ];
+  const [activeTab, setActiveTab] = useState("for-you");
 
-  const contests = [
-    { title: "Weekly Contest 421", date: "In 3 days", badge: "New" },
-    { title: "Biweekly Contest 143", date: "In 5 days", badge: "New" },
+  const posts = [
+    {
+      author: "CodeNova",
+      verified: true,
+      time: "Sep 23, 2025",
+      title: "What to ✨ Ask CodeNova. Winners Announcement 🎁",
+      content: "👋 Hello CodeNovaers! We're excited to introduce a new feature to your coding experience: CodeNova AI. It is designed to help you explore ideas, fix bugs faster, and refine your coding style more effectively. 📚 Try...",
+      upvotes: 177,
+      views: "21.7K",
+      comments: "1.3K",
+      tags: ["#Announcement", "#AI"]
+    },
+    {
+      author: "Vishal Arya",
+      verified: false,
+      time: "an hour ago",
+      title: "Microsoft Interview Experience | 28 Sept",
+      content: "Round 1: Dsa round. Two questions were asked. First one was based on binary search. Second one was about stack. The interviewer was amazing. He shared a lot about his work. My remarks: Always be communicative and voice out your...",
+      upvotes: 2,
+      views: "183",
+      comments: "2",
+      tags: ["#Microsoft", "#Interview"]
+    },
+    {
+      author: "Anonymous User",
+      verified: false,
+      time: "an hour ago",
+      title: "Need some real-world career advice — not about coding this time",
+      content: "Hey everyone, this is kind of off-topic and doesn't exactly fit the usual leetcode theme, but I'm asking here because I truly believe people on this platform can give genuine, thoughtful advice since we all have once gone through this phase. So here's...",
+      upvotes: 1,
+      views: "80",
+      comments: "1",
+      tags: ["#Career", "#Advice"]
+    },
+    {
+      author: "Debmalya",
+      verified: false,
+      time: "2 hours ago",
+      title: "Salesforce | SMTS | OA",
+      content: "Has anyone received the Online Assessment for Salesforce SMTS role? Would love to connect and discuss the format and preparation strategies.",
+      upvotes: 0,
+      views: "45",
+      comments: "0",
+      tags: ["#Salesforce", "#OA"]
+    },
+    {
+      author: "Tech Learner",
+      verified: false,
+      time: "3 hours ago",
+      title: "Google L4 role questions regarding — (comparison)",
+      content: "I've been interviewing for Google L4 positions and wanted to compare experiences with others. How does the interview process compare to other FAANG companies?",
+      upvotes: 3,
+      views: "210",
+      comments: "5",
+      tags: ["#Google", "#L4"]
+    },
+    {
+      author: "DSA Master",
+      verified: true,
+      time: "5 hours ago",
+      title: "Which Language to Choose for DSA?",
+      content: "A comprehensive guide on choosing the right programming language for Data Structures and Algorithms. We'll cover Python, Java, C++, and JavaScript, discussing the pros and cons of each. Python offers simplicity and readability, making it great for beginners...",
+      upvotes: 89,
+      views: "5.2K",
+      comments: "42",
+      tags: ["#DSA", "#Languages", "#Guide"]
+    }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8 mt-16">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome to CodeNova</h1>
-          <p className="text-muted-foreground">
-            Master Data Structures and Algorithms through practice and contests
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Code2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">2,500+</p>
-                <p className="text-sm text-muted-foreground">Problems</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Award className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">Weekly</p>
-                <p className="text-sm text-muted-foreground">Contests</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">100K+</p>
-                <p className="text-sm text-muted-foreground">Active Users</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Upcoming Contests */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Award className="h-5 w-5" />
-            <h2 className="text-2xl font-bold">Upcoming Contests</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {contests.map((contest, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold">{contest.title}</h3>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    {contest.badge}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">{contest.date}</p>
-                <Button size="sm" className="w-full">Register Now</Button>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* DSA Topics */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="h-5 w-5" />
-            <h2 className="text-2xl font-bold">Explore Topics</h2>
-          </div>
-          <p className="text-muted-foreground mb-6">
-            Master fundamental data structures and algorithms. Each topic contains curated problems from easy to advanced level.
-          </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {topics.map((topic, index) => (
-              <a
-                key={index}
-                href={topic.link}
-                className="group"
+      <main className="max-w-5xl mx-auto px-4 py-6 mt-16">
+        {/* Tabs Navigation */}
+        <div className="mb-6 border-b">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="bg-transparent h-12 p-0 border-0">
+              <TabsTrigger 
+                value="for-you" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6"
               >
-                <Card className="p-6 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer">
-                  <div className="text-center">
-                    <div className="text-4xl mb-3">{topic.icon}</div>
-                    <h3 className="font-semibold group-hover:text-primary transition-colors">
-                      {topic.name}
-                    </h3>
+                <Flame className="h-4 w-4 mr-2" />
+                For You
+              </TabsTrigger>
+              <TabsTrigger 
+                value="career" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6"
+              >
+                Career
+              </TabsTrigger>
+              <TabsTrigger 
+                value="contest" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6"
+              >
+                Contest
+              </TabsTrigger>
+              <TabsTrigger 
+                value="dsa" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6"
+              >
+                DSA Topics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="languages" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6"
+              >
+                Languages
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Sort Options */}
+        <div className="flex items-center gap-4 mb-6 text-sm">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <Flame className="h-4 w-4" />
+            Most Votes
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Newest
+          </Button>
+        </div>
+
+        {/* Posts Feed */}
+        <div className="space-y-4">
+          {posts.map((post, index) => (
+            <Card key={index} className="p-6 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex gap-4">
+                {/* Vote Section */}
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium">{post.upvotes}</span>
+                </div>
+
+                {/* Content Section */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">{post.author}</span>
+                    {post.verified && <Verified className="h-4 w-4 text-primary fill-primary" />}
+                    <span>·</span>
+                    <span>{post.time}</span>
                   </div>
-                </Card>
-              </a>
-            ))}
-          </div>
+                  
+                  <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors">
+                    {post.title}
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {post.content}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      <span>{post.views}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>{post.comments}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      {post.tags.map((tag, idx) => (
+                        <span key={idx} className="text-primary hover:underline cursor-pointer">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Show More Button */}
+        <div className="mt-8 text-center">
+          <Button variant="outline" size="lg">
+            Show More
+          </Button>
         </div>
       </main>
     </div>

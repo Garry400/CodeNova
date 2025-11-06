@@ -1,6 +1,5 @@
-
 import { Button } from "@/components/ui/button";
-import { Code2, Menu, X, Moon, Sun, User, LogOut } from "lucide-react";
+import { Code2, Menu, X, Moon, Sun, User, LogOut, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
@@ -10,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +58,9 @@ const Navigation = () => {
                 <Link to="/contest" className="text-foreground hover:text-primary transition-colors">
                   Contest
                 </Link>
+                <Link to="/discuss" className="text-foreground hover:text-primary transition-colors">
+                  Discuss
+                </Link>
               </>
             ) : (
               <>
@@ -90,26 +93,57 @@ const Navigation = () => {
             </Button>
             
             {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    {username}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                {/* Notifications Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80">
+                    <div className="flex items-center justify-between p-4 border-b">
+                      <h3 className="font-semibold">Notifications</h3>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      <div className="p-4 hover:bg-accent cursor-pointer border-b">
+                        <p className="text-sm font-medium mb-1">Finish completing your profile</p>
+                        <p className="text-xs text-muted-foreground">2 years ago</p>
+                      </div>
+                      <div className="p-4 hover:bg-accent cursor-pointer">
+                        <p className="text-sm font-medium mb-1">Welcome to CodeNova! Check out the guide</p>
+                        <p className="text-xs text-muted-foreground">2 years ago</p>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Profile Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <>
                 <Button variant="ghost" asChild>
@@ -160,6 +194,13 @@ const Navigation = () => {
                   className="block w-full text-left px-3 py-2 text-foreground hover:text-primary transition-colors"
                 >
                   Contest
+                </Link>
+                <Link
+                  to="/discuss"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-left px-3 py-2 text-foreground hover:text-primary transition-colors"
+                >
+                  Discuss
                 </Link>
                 <Link
                   to="/profile"
