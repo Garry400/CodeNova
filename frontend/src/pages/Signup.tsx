@@ -9,8 +9,6 @@ import Navigation from "@/components/Navigation";
 import { Code2, Github, Mail, Eye, EyeOff, User, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,30 +29,16 @@ const Signup = () => {
     number: false
   });
 
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:8000/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: formData.fullName, accountType, email: formData.email, password: formData.password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.detail || "Registration failed");
-        return;
-      }
-
-      alert("Account created successfully!");
-      navigate("/login");
-    } catch (error) {
-      console.error(error);
-      alert("Network error or server is down.");
-    }
+    if (!isFormValid) return;
+    
+    // Mock signup - store user in localStorage
+    localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("username", formData.fullName);
+    console.log("Signup successful:", { ...formData, accountType });
+    // Redirect to home page
+    window.location.href = "/home";
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
