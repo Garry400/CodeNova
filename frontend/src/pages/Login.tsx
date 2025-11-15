@@ -24,6 +24,7 @@ const Login = () => {
     // Mock login - store user in localStorage
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("username", formData.email.split("@")[0]);
+    localStorage.setItem("userRole", accountType);
     console.log("Login successful:", formData);
     // Redirect to home page
     window.location.href = "/home";

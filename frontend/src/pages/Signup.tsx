@@ -36,6 +36,7 @@ const Signup = () => {
     // Mock signup - store user in localStorage
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("username", formData.fullName);
+    localStorage.setItem("userRole", accountType);
     console.log("Signup successful:", { ...formData, accountType });
     // Redirect to home page
     window.location.href = "/home";
