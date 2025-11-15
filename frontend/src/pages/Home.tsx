@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import ContestManager from "@/components/ContestManager";
 import ContestList from "@/components/ContestList";
 import CareerQuestions from "@/components/CareerQuestions";
+import { checkAndSendContestNotifications } from "@/utils/contestNotifications";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("for-you");
@@ -20,6 +21,14 @@ const Home = () => {
       localStorage.getItem("role") ||
       "student";
     setUserRole(role);
+    
+    // Check for contest notifications every minute
+    checkAndSendContestNotifications();
+    const notificationInterval = setInterval(() => {
+      checkAndSendContestNotifications();
+    }, 60000); // 60 seconds
+    
+    return () => clearInterval(notificationInterval);
   }, []);
 
   const forYouPosts = [

@@ -8,13 +8,27 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { getUnreadCount, markAllNotificationsAsRead } from "@/utils/contestNotifications";
+
+interface Notification {
+  id: string;
+  type: string;
+  contestName: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+}
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -23,7 +37,46 @@ const Navigation = () => {
     const storedUsername = localStorage.getItem("username") || "";
     setIsAuthenticated(authStatus);
     setUsername(storedUsername);
+    
+    // Load notifications
+    loadNotifications();
+    
+    // Listen for storage changes to update notifications in real-time
+    const handleStorageChange = () => {
+      loadNotifications();
+    };
+    window.addEventListener("storage", handleStorageChange);
+    
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  const loadNotifications = () => {
+    const stored = localStorage.getItem("notifications");
+    if (stored) {
+      const allNotifications = JSON.parse(stored);
+      setNotifications(allNotifications.slice(0, 5)); // Show last 5
+      setUnreadCount(getUnreadCount());
+    }
+  };
+
+  const handleMarkAllRead = () => {
+    markAllNotificationsAsRead();
+    loadNotifications();
+  };
+
+  const formatNotificationTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
@@ -96,23 +149,59 @@ const Navigation = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
                       <Bell className="h-5 w-5" />
-                      <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full" />
+                      {unreadCount > 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                        >
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </Badge>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80">
-                    <div className="flex items-center justify-between p-4 border-b">
-                      <h3 className="font-semibold">Notifications</h3>
+                    <div className="flex items-center justify-between p-2 border-b">
+                      <span className="font-semibold">Notifications</span>
+                      {unreadCount > 0 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-auto py-1 px-2 text-xs"
+                          onClick={handleMarkAllRead}
+                        >
+                          Mark all read
+                        </Button>
+                      )}
                     </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      <div className="p-4 hover:bg-accent cursor-pointer border-b">
-                        <p className="text-sm font-medium mb-1">Finish completing your profile</p>
-                        <p className="text-xs text-muted-foreground">2 years ago</p>
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-sm text-center text-muted-foreground">
+                        No notifications yet
                       </div>
-                      <div className="p-4 hover:bg-accent cursor-pointer">
-                        <p className="text-sm font-medium mb-1">Welcome to CodeNova! Check out the guide</p>
-                        <p className="text-xs text-muted-foreground">2 years ago</p>
+                    ) : (
+                      <div className="max-h-96 overflow-y-auto">
+                        {notifications.map((notif) => (
+                          <DropdownMenuItem key={notif.id} className="p-3 cursor-pointer">
+                            <div className="flex gap-2 w-full">
+                              <Bell className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+                              <div className="flex-1 space-y-1">
+                                <p className="text-sm font-medium leading-tight">
+                                  {notif.contestName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {notif.message}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatNotificationTime(notif.timestamp)}
+                                </p>
+                              </div>
+                              {!notif.read && (
+                                <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0 mt-1" />
+                              )}
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
                       </div>
-                    </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
