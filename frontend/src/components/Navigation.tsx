@@ -49,17 +49,11 @@ const Navigation = () => {
           <div className="hidden md:flex items-center space-x-8">
             {isAuthenticated ? (
               <>
-                <Link to="/home" className="text-foreground hover:text-primary transition-colors">
-                  Home
+                <Link to="/#how-it-works" className="text-foreground hover:text-primary transition-colors">
+                  How It Works
                 </Link>
-                <Link to="/problems" className="text-foreground hover:text-primary transition-colors">
-                  Problems
-                </Link>
-                <Link to="/contest" className="text-foreground hover:text-primary transition-colors">
-                  Contest
-                </Link>
-                <Link to="/discuss" className="text-foreground hover:text-primary transition-colors">
-                  Discuss
+                <Link to="/#about" className="text-foreground hover:text-primary transition-colors">
+                  About
                 </Link>
               </>
             ) : (
@@ -175,32 +169,18 @@ const Navigation = () => {
             {isAuthenticated ? (
               <>
                 <Link
-                  to="/home"
+                  to="/#how-it-works"
                   onClick={() => setIsOpen(false)}
                   className="block w-full text-left px-3 py-2 text-foreground hover:text-primary transition-colors"
                 >
-                  Home
+                  How It Works
                 </Link>
                 <Link
-                  to="/problems"
+                  to="/#about"
                   onClick={() => setIsOpen(false)}
                   className="block w-full text-left px-3 py-2 text-foreground hover:text-primary transition-colors"
                 >
-                  Problems
-                </Link>
-                <Link
-                  to="/contest"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full text-left px-3 py-2 text-foreground hover:text-primary transition-colors"
-                >
-                  Contest
-                </Link>
-                <Link
-                  to="/discuss"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full text-left px-3 py-2 text-foreground hover:text-primary transition-colors"
-                >
-                  Discuss
+                  About
                 </Link>
                 <Link
                   to="/profile"
