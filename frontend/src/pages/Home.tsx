@@ -14,7 +14,11 @@ const Home = () => {
   const [userRole, setUserRole] = useState<string>("student");
 
   useEffect(() => {
-    const role = localStorage.getItem("userRole") || "student";
+    const role =
+      localStorage.getItem("userRole") ||
+      localStorage.getItem("accountType") ||
+      localStorage.getItem("role") ||
+      "student";
     setUserRole(role);
   }, []);
 

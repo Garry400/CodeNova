@@ -28,6 +28,9 @@ const Navigation = () => {
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("username");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("accountType");
+    localStorage.removeItem("role");
     window.location.href = "/";
   };
 
