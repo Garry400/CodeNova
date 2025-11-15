@@ -3,14 +3,22 @@ import { Card } from "@/components/ui/card";
 import { Flame, Sparkles, Eye, Verified, Code2, Briefcase, Trophy, BookOpen, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import ContestManager from "@/components/ContestManager";
+import ContestList from "@/components/ContestList";
+import CareerQuestions from "@/components/CareerQuestions";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("for-you");
-
   const [viewCounts, setViewCounts] = useState<{[key: number]: number}>({});
+  const [userRole, setUserRole] = useState<string>("student");
 
-  const posts = [
+  useEffect(() => {
+    const role = localStorage.getItem("userRole") || "student";
+    setUserRole(role);
+  }, []);
+
+  const forYouPosts = [
     {
       author: "CodeNova",
       verified: true,
@@ -44,40 +52,94 @@ const Home = () => {
       icon: Briefcase,
       tags: ["#Career", "#Advice"]
     },
+  ];
+
+  const dsaTopicsPosts = [
     {
-      author: "Debmalya",
-      verified: false,
+      author: "Algorithm Expert",
+      verified: true,
       time: "2 hours ago",
-      title: "Salesforce | SMTS | OA",
-      content: "Has anyone received the Online Assessment for Salesforce SMTS role? Would love to connect and discuss the format and preparation strategies.",
-      upvotes: 0,
-      views: 45,
+      title: "Master Dynamic Programming in 30 Days",
+      content: "A comprehensive roadmap to mastering dynamic programming. Start with basics like Fibonacci, move to 1D DP, then 2D DP, and finally tackle advanced problems. Includes practice problems for each level...",
+      upvotes: 234,
+      views: 12500,
       icon: Code2,
-      tags: ["#Salesforce", "#OA"]
+      tags: ["#DynamicProgramming", "#DSA"]
     },
     {
-      author: "Tech Learner",
-      verified: false,
-      time: "3 hours ago",
-      title: "Google L4 role questions regarding — (comparison)",
-      content: "I've been interviewing for Google L4 positions and wanted to compare experiences with others. How does the interview process compare to other FAANG companies?",
-      upvotes: 3,
-      views: 210,
-      icon: Briefcase,
-      tags: ["#Google", "#L4"]
-    },
-    {
-      author: "DSA Master",
+      author: "Data Structure Guru",
       verified: true,
       time: "5 hours ago",
-      title: "Which Language to Choose for DSA?",
-      content: "A comprehensive guide on choosing the right programming language for Data Structures and Algorithms. We'll cover Python, Java, C++, and JavaScript, discussing the pros and cons of each. Python offers simplicity and readability, making it great for beginners...",
-      upvotes: 89,
-      views: 5200,
-      icon: Languages,
-      tags: ["#DSA", "#Languages", "#Guide"]
-    }
+      title: "Graph Algorithms: A Visual Guide",
+      content: "Understanding graph algorithms through visualization. This post covers BFS, DFS, Dijkstra's, and more with interactive examples and real-world applications...",
+      upvotes: 189,
+      views: 8900,
+      icon: BookOpen,
+      tags: ["#Graphs", "#Algorithms"]
+    },
+    {
+      author: "Tree Master",
+      verified: false,
+      time: "1 day ago",
+      title: "Binary Trees: From Basics to Advanced",
+      content: "Everything you need to know about binary trees, including traversals, BST operations, balanced trees, and common interview patterns...",
+      upvotes: 156,
+      views: 7200,
+      icon: Code2,
+      tags: ["#Trees", "#DataStructures"]
+    },
   ];
+
+  const languagesPosts = [
+    {
+      author: "Python Expert",
+      verified: true,
+      time: "3 hours ago",
+      title: "Python vs C++ for Competitive Programming",
+      content: "An in-depth comparison of Python and C++ for competitive programming. While Python offers cleaner syntax and faster development, C++ provides better performance for time-critical problems...",
+      upvotes: 298,
+      views: 15600,
+      icon: Languages,
+      tags: ["#Python", "#CPP", "#CompetitiveProgramming"]
+    },
+    {
+      author: "JavaScript Ninja",
+      verified: true,
+      time: "6 hours ago",
+      title: "Modern JavaScript Features for Coding Interviews",
+      content: "Essential JavaScript features every developer should know for technical interviews: destructuring, spread operators, array methods, promises, and more...",
+      upvotes: 167,
+      views: 9300,
+      icon: Code2,
+      tags: ["#JavaScript", "#Interviews"]
+    },
+    {
+      author: "Java Developer",
+      verified: false,
+      time: "1 day ago",
+      title: "Why Java is Still Relevant in 2025",
+      content: "Despite the rise of newer languages, Java remains a powerhouse for enterprise applications, Android development, and competitive programming. Here's why...",
+      upvotes: 143,
+      views: 6800,
+      icon: Languages,
+      tags: ["#Java", "#Programming"]
+    },
+  ];
+
+  const getCurrentPosts = () => {
+    switch (activeTab) {
+      case "for-you":
+        return forYouPosts;
+      case "dsa":
+        return dsaTopicsPosts;
+      case "languages":
+        return languagesPosts;
+      default:
+        return forYouPosts;
+    }
+  };
+
+  const posts = getCurrentPosts();
 
   const formatViews = (views: number) => {
     if (views >= 1000) {
@@ -137,77 +199,90 @@ const Home = () => {
           </Tabs>
         </div>
 
-        {/* Sort Options */}
-        <div className="flex items-center gap-4 mb-6 text-sm">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Flame className="h-4 w-4" />
-            Most Votes
-          </Button>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Newest
-          </Button>
-        </div>
+        {/* Career Tab */}
+        {activeTab === "career" && <CareerQuestions />}
 
-        {/* Posts Feed */}
-        <div className="space-y-4">
-          {posts.map((post, index) => {
-            const Icon = post.icon;
-            const currentViews = viewCounts[index] || post.views;
-            
-            return (
-              <Card key={index} className="p-6 hover:shadow-md transition-shadow" onClick={() => handleCardView(index)}>
-                <div className="flex gap-4">
-                  {/* Icon Section */}
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                  </div>
+        {/* Contest Tab */}
+        {activeTab === "contest" && (
+          userRole === "faculty" ? <ContestManager /> : <ContestList />
+        )}
 
-                  {/* Content Section */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{post.author}</span>
-                      {post.verified && <Verified className="h-4 w-4 text-primary fill-primary" />}
-                      <span>·</span>
-                      <span>{post.time}</span>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors cursor-pointer">
-                      {post.title}
-                    </h3>
-                    
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {post.content}
-                    </p>
+        {/* For You, DSA Topics, Languages Tabs */}
+        {(activeTab === "for-you" || activeTab === "dsa" || activeTab === "languages") && (
+          <>
+            {/* Sort Options */}
+            <div className="flex items-center gap-4 mb-6 text-sm">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Flame className="h-4 w-4" />
+                Most Votes
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Newest
+              </Button>
+            </div>
 
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        <span>{formatViews(currentViews)}</span>
+            {/* Posts Feed */}
+            <div className="space-y-4">
+              {posts.map((post, index) => {
+                const Icon = post.icon;
+                const currentViews = viewCounts[index] || post.views;
+                
+                return (
+                  <Card key={index} className="p-6 hover:shadow-md transition-shadow" onClick={() => handleCardView(index)}>
+                    <div className="flex gap-4">
+                      {/* Icon Section */}
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        {post.tags.map((tag, idx) => (
-                          <span key={idx} className="text-primary hover:underline cursor-pointer">
-                            {tag}
-                          </span>
-                        ))}
+
+                      {/* Content Section */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{post.author}</span>
+                          {post.verified && <Verified className="h-4 w-4 text-primary fill-primary" />}
+                          <span>·</span>
+                          <span>{post.time}</span>
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors cursor-pointer">
+                          {post.title}
+                        </h3>
+                        
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {post.content}
+                        </p>
+
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-4 w-4" />
+                            <span>{formatViews(currentViews)}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {post.tags.map((tag, idx) => (
+                              <span key={idx} className="text-primary hover:underline cursor-pointer">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                  </Card>
+                );
+              })}
+            </div>
 
-        {/* Show More Button */}
-        <div className="mt-8 text-center">
-          <Button variant="outline" size="lg">
-            Show More
-          </Button>
-        </div>
+            {/* Show More Button */}
+            <div className="mt-8 text-center">
+              <Button variant="outline" size="lg">
+                Show More
+              </Button>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

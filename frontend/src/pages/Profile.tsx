@@ -6,34 +6,55 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Trophy, Code2, Target } from "lucide-react";
 
 const Profile = () => {
-  // Mock user data - replace with real data from auth/backend
-  const userData = {
-    username: "coder123",
-    rank: "250,000",
-    easyCompleted: 150,
-    easyTotal: 735,
-    mediumCompleted: 80,
-    mediumTotal: 1544,
-    hardCompleted: 20,
-    hardTotal: 681,
-    badges: 3,
-    streak: 15,
+  // Get user data from localStorage
+  const username = localStorage.getItem("username") || "guest";
+  const userRole = localStorage.getItem("userRole") || "student";
+  
+  // Get or initialize user progress data
+  const getUserData = () => {
+    const stored = localStorage.getItem(`userData_${username}`);
+    if (stored) return JSON.parse(stored);
+    
+    const defaultData = {
+      username,
+      role: userRole,
+      rank: "250,000",
+      easyCompleted: 0,
+      easyTotal: 735,
+      mediumCompleted: 0,
+      mediumTotal: 1544,
+      hardCompleted: 0,
+      hardTotal: 681,
+      badges: 0,
+      streak: 0,
+    };
+    localStorage.setItem(`userData_${username}`, JSON.stringify(defaultData));
+    return defaultData;
   };
 
-  const recentActivity = [
-    { date: "Nov 5", problems: 3 },
-    { date: "Nov 4", problems: 5 },
-    { date: "Nov 3", problems: 2 },
-    { date: "Nov 2", problems: 4 },
-    { date: "Nov 1", problems: 1 },
-  ];
+  const userData = getUserData();
 
-  const skills = [
-    { name: "Array", level: "Advanced" },
-    { name: "Dynamic Programming", level: "Intermediate" },
-    { name: "Graph", level: "Intermediate" },
-    { name: "Tree", level: "Advanced" },
-  ];
+  const getRecentActivity = () => {
+    const stored = localStorage.getItem(`activity_${username}`);
+    if (stored) return JSON.parse(stored);
+    return [
+      { date: "Nov 5", problems: 0 },
+      { date: "Nov 4", problems: 0 },
+      { date: "Nov 3", problems: 0 },
+      { date: "Nov 2", problems: 0 },
+      { date: "Nov 1", problems: 0 },
+    ];
+  };
+
+  const recentActivity = getRecentActivity();
+
+  const getSkills = () => {
+    const stored = localStorage.getItem(`skills_${username}`);
+    if (stored) return JSON.parse(stored);
+    return [];
+  };
+
+  const skills = getSkills();
 
   return (
     <div className="min-h-screen bg-background">
