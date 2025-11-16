@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Users, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 interface Contest {
@@ -19,6 +20,7 @@ interface Contest {
 const ContestList = () => {
   const [contests, setContests] = useState<Contest[]>([]);
   const [activeTab, setActiveTab] = useState<"ongoing" | "upcoming">("ongoing");
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,11 +50,7 @@ const ContestList = () => {
   });
 
   const handleJoinContest = (contestId: string, contestName: string) => {
-    toast({
-      title: "Joining Contest",
-      description: `Redirecting to ${contestName}... (Code editor integration pending)`,
-    });
-    // TODO: Navigate to code editor with contest questions
+    navigate(`/contest/${contestId}`);
   };
 
   return (

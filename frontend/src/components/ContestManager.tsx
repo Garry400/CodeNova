@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QuestionManager from "./QuestionManager";
+import Leaderboard from "./Leaderboard";
 import { createContestNotification, addNotification } from "@/utils/contestNotifications";
 
 interface Contest {
@@ -45,6 +46,8 @@ const ContestManager = () => {
   const [activeTab, setActiveTab] = useState<"ongoing" | "upcoming" | "recents">("ongoing");
   const [questionManagerOpen, setQuestionManagerOpen] = useState(false);
   const [selectedContestId, setSelectedContestId] = useState<string>("");
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [leaderboardContest, setLeaderboardContest] = useState<{ id: string; name: string } | null>(null);
   const username = localStorage.getItem("username") || "guest";
   const { toast } = useToast();
 
@@ -295,8 +298,16 @@ const ContestManager = () => {
                   </div>
                 )}
 
-                {status === "completed" && (
-                  <Button variant="outline" className="w-full" size="sm">
+                {status === "completed" && isOwner && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="sm"
+                    onClick={() => {
+                      setLeaderboardContest({ id: contest.id, name: contest.name });
+                      setLeaderboardOpen(true);
+                    }}
+                  >
                     <Trophy className="h-4 w-4 mr-2" />
                     View Leaderboard
                   </Button>
@@ -366,6 +377,21 @@ const ContestManager = () => {
           loadContests(); // Reload to show updated question count
         }}
       />
+
+      {/* Leaderboard Dialog */}
+      <Dialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Contest Results</DialogTitle>
+          </DialogHeader>
+          {leaderboardContest && (
+            <Leaderboard
+              contestId={leaderboardContest.id}
+              contestName={leaderboardContest.name}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
