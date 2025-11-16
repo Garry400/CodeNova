@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, Check, X } from "lucide-react";
+import { Play, Check, X, Video, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import * as blazeface from "@tensorflow-models/blazeface";
+import "@tensorflow/tfjs";
 
 interface TestCase {
   input: string;
@@ -29,7 +31,15 @@ const CodeEditor = ({ questionId, testCases, onSubmit }: CodeEditorProps) => {
   const [language, setLanguage] = useState("javascript");
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [faceDetectionStatus, setFaceDetectionStatus] = useState<"checking" | "ok" | "warning" | "error">("checking");
+  const [detectionMessage, setDetectionMessage] = useState("Initializing...");
   const { toast } = useToast();
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const modelRef = useRef<blazeface.BlazeFaceModel | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const detectionIntervalRef = useRef<number | null>(null);
 
   const languageTemplates: Record<string, string> = {
     javascript: "// Write your JavaScript code here\nfunction solution(input) {\n  // Your code here\n  return input;\n}\n",
@@ -120,6 +130,68 @@ const CodeEditor = ({ questionId, testCases, onSubmit }: CodeEditorProps) => {
     onSubmit(code, language, testResults);
   };
 
+  useEffect(() => {
+    const initializeCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: 240, height: 180 } 
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          streamRef.current = stream;
+          setCameraEnabled(true);
+        }
+
+        // Load face detection model
+        const model = await blazeface.load();
+        modelRef.current = model;
+        setFaceDetectionStatus("ok");
+        setDetectionMessage("Face detected");
+
+        // Start face detection
+        detectionIntervalRef.current = window.setInterval(async () => {
+          if (videoRef.current && modelRef.current) {
+            const predictions = await modelRef.current.estimateFaces(videoRef.current, false);
+            
+            if (predictions.length === 0) {
+              setFaceDetectionStatus("error");
+              setDetectionMessage("No face detected!");
+            } else if (predictions.length > 1) {
+              setFaceDetectionStatus("warning");
+              setDetectionMessage("Multiple faces detected!");
+            } else {
+              setFaceDetectionStatus("ok");
+              setDetectionMessage("Face detected");
+            }
+          }
+        }, 2000);
+
+      } catch (error) {
+        console.error("Error accessing camera:", error);
+        setFaceDetectionStatus("error");
+        setDetectionMessage("Camera access denied");
+        toast({
+          title: "Camera Required",
+          description: "Please enable camera access for proctoring",
+          variant: "destructive"
+        });
+      }
+    };
+
+    initializeCamera();
+
+    return () => {
+      // Cleanup
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+      }
+    };
+  }, [toast]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -146,7 +218,7 @@ const CodeEditor = ({ questionId, testCases, onSubmit }: CodeEditorProps) => {
         </div>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden relative">
         <Editor
           height="400px"
           language={language}
@@ -161,6 +233,43 @@ const CodeEditor = ({ questionId, testCases, onSubmit }: CodeEditorProps) => {
             automaticLayout: true,
           }}
         />
+        
+        {/* Camera Feed Overlay */}
+        <div className="absolute top-4 right-4 w-60 h-45 bg-background border-2 rounded-lg overflow-hidden shadow-lg" 
+             style={{ 
+               borderColor: faceDetectionStatus === "ok" ? "hsl(var(--success))" : 
+                          faceDetectionStatus === "warning" ? "hsl(var(--warning))" : 
+                          "hsl(var(--destructive))" 
+             }}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
+          
+          {/* Status Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 bg-background/90 px-2 py-1 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1">
+              {faceDetectionStatus === "ok" ? (
+                <Check className="h-3 w-3 text-success" />
+              ) : faceDetectionStatus === "warning" ? (
+                <AlertTriangle className="h-3 w-3 text-warning" />
+              ) : (
+                <X className="h-3 w-3 text-destructive" />
+              )}
+              <span className={
+                faceDetectionStatus === "ok" ? "text-success" :
+                faceDetectionStatus === "warning" ? "text-warning" :
+                "text-destructive"
+              }>
+                {detectionMessage}
+              </span>
+            </div>
+            <Video className="h-3 w-3 text-muted-foreground" />
+          </div>
+        </div>
       </Card>
 
       {testResults.length > 0 && (
