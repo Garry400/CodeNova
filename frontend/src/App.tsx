@@ -7,10 +7,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Home from "./pages/Home.tsx";
+import Profile from "./pages/Profile.tsx";
 import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/Dashboard";
-import React from "react";
-import ProctorExam from "./pages/ProctorExam";
 
 const queryClient = new QueryClient();
 
@@ -25,8 +24,9 @@ const App = () => (
             {/* <Route path="/" element={<Landing />} /> */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/dashboard" element={<Dashboard />} /> 
-            <Route path="/" element={<ProctorExam />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
