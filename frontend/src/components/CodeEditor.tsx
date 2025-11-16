@@ -7,6 +7,15 @@ import { Play, Check, X, Video, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as blazeface from "@tensorflow-models/blazeface";
 import "@tensorflow/tfjs";
+import { JUDGE0_API_URL, JUDGE0_API_HOST, JUDGE0_API_KEY } from "@/config/judge0";
+
+const languageIds: Record<string, number> = {
+  javascript: 63,
+  python: 71,
+  cpp: 54,
+  java: 62,
+};
+
 
 interface TestCase {
   input: string;
@@ -53,6 +62,30 @@ const CodeEditor = ({ questionId, testCases, onSubmit }: CodeEditorProps) => {
     setCode(languageTemplates[newLanguage] || "");
   };
 
+  const runJudge0Code = async (sourceCode: string, lang: string, input: string) => {
+  try {
+    const response = await fetch(JUDGE0_API_URL + "?base64_encoded=false&wait=true", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-RapidAPI-Key": JUDGE0_API_KEY,
+        "X-RapidAPI-Host": JUDGE0_API_HOST,
+      },
+      body: JSON.stringify({
+        source_code: sourceCode,
+        stdin: input,
+        language_id: languageIds[lang],
+      }),
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (err) {
+    console.error("Judge0 error:", err);
+    return { error: true };
+  }
+  };
+   
   const runCode = () => {
     setIsRunning(true);
     const results: TestResult[] = [];
