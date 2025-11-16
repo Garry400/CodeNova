@@ -1,0 +1,4 @@
+
+HOW TO RUN ---
+inside frontend - npm run dev
+inside backend - uvicorn app.main:app --reload

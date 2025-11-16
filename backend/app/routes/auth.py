@@ -16,6 +16,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 # JWT Config
 SECRET_KEY = os.getenv("SECRET_KEY", "codenova-secret")  # Use env var in production
 ALGORITHM = "HS256"
