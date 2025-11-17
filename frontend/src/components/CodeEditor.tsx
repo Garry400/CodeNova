@@ -2,33 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import { Play } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Play, Check, X, Video, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-import {
-  JUDGE0_API_URL,
-  JUDGE0_API_HOST,
-  JUDGE0_API_KEY,
-} from "@/config/judge0";
-
-const languageIds: Record<string, number> = {
-  javascript: 63,
-  python: 71,
-  cpp: 54,
-  java: 62,
-};
+import * as blazeface from "@tensorflow-models/blazeface";
+import "@tensorflow/tfjs";
 
 interface TestCase {
   input: string;
   output: string;
+}
+
+interface CodeEditorProps {
+  questionId: string;
+  testCases: TestCase[];
+  onSubmit: (code: string, language: string, results: TestResult[]) => void;
 }
 
 interface TestResult {
@@ -38,39 +26,26 @@ interface TestResult {
   actual: string;
 }
 
-interface CodeEditorProps {
-  questionId: string;
-  testCases: TestCase[];
-  onSubmit: (code: string, language: string, results: TestResult[]) => void;
-}
-
-const CodeEditor = ({ testCases, onSubmit }: CodeEditorProps) => {
+const CodeEditor = ({ questionId, testCases, onSubmit }: CodeEditorProps) => {
   const [code, setCode] = useState("// Write your code here\n");
   const [language, setLanguage] = useState("javascript");
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [faceDetectionStatus, setFaceDetectionStatus] = useState<"checking" | "ok" | "warning" | "error">("checking");
+  const [detectionMessage, setDetectionMessage] = useState("Initializing...");
+  const { toast } = useToast();
+  
   const videoRef = useRef<HTMLVideoElement>(null);
+  const modelRef = useRef<blazeface.BlazeFaceModel | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectionIntervalRef = useRef<number | null>(null);
 
-  const { toast } = useToast();
-
   const languageTemplates: Record<string, string> = {
-    javascript:
-      "// Write your JavaScript code here\nfunction solution(input) {\n  return input;\n}\n",
-    python: "# Write your Python code here\ndef solution(input):\n    return input\n",
-    cpp: `#include <iostream>
-using namespace std;
-
-int main() {
-    return 0;
-}`,
-    java: `public class Solution {
-    public static void main(String[] args) {
-
-    }
-}`,
+    javascript: "// Write your JavaScript code here\nfunction solution(input) {\n  // Your code here\n  return input;\n}\n",
+    python: "# Write your Python code here\ndef solution(input):\n    # Your code here\n    return input\n",
+    cpp: "#include <iostream>\nusing namespace std;\n\nint main() {\n    // Your code here\n    return 0;\n}\n",
+    java: "public class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}\n"
   };
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -78,64 +53,142 @@ int main() {
     setCode(languageTemplates[newLanguage] || "");
   };
 
-  const runCode = () => {
+  // ---------- Improved runCode (robust & diagnostic) ----------
+  const runCode = async () => {
     setIsRunning(true);
     const results: TestResult[] = [];
 
+    // helper: try to parse JSON or primitives if string looks like JSON/number/boolean
+    const tryParse = (s: any) => {
+      if (s === null || s === undefined) return s;
+      if (typeof s !== "string") return s;
+      const trimmed = s.trim();
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+        /^-?\d+(\.\d+)?$/.test(trimmed) || // looks like number
+        trimmed === "true" || trimmed === "false" // boolean
+      ) {
+        try {
+          return JSON.parse(trimmed);
+        } catch {
+          // not valid JSON — fall through
+        }
+      }
+      return s;
+    };
+
+    // helper: canonicalize for comparison (objects -> JSON, primitives -> string trimmed)
+    const canonical = (v: any) => {
+      if (v === null) return "null";
+      if (v === undefined) return "undefined";
+      if (typeof v === "object") {
+        try {
+          return JSON.stringify(v);
+        } catch {
+          return String(v);
+        }
+      }
+      return String(v).trim();
+    };
+
     try {
       if (language === "javascript") {
-        testCases.forEach((testCase) => {
+        for (const testCase of testCases) {
           try {
-            const func = new Function("input", code + "\nreturn solution(input);");
-            const actual = String(func(testCase.input));
+            // build a wrapper that tries to call solution or main
+            const wrapper = new Function(
+              "input",
+              `
+              ${code}
+              return (typeof solution === 'function') ? solution(input) : (typeof main === 'function' ? main(input) : undefined);
+            `
+            );
+
+            // Prefer parsed input (if it looks like JSON/number/bool). Some students expect parsed objects.
+            const parsedInput = tryParse(testCase.input);
+
+            // Execute with parsedInput first; fallback to raw string if that errors
+            let maybePromise;
+            try {
+              maybePromise = wrapper(parsedInput);
+            } catch (firstErr) {
+              // fallback to raw string
+              try {
+                maybePromise = wrapper(testCase.input);
+              } catch (secondErr) {
+                throw secondErr;
+              }
+            }
+
+            // Support async functions by awaiting whatever is returned
+            const actualResolved = await Promise.resolve(maybePromise);
+
+            // Parse expected similarly to compare structurally if needed
+            const expectedParsed = tryParse(testCase.output);
+            const actualCanonical = canonical(actualResolved);
+            const expectedCanonical = canonical(expectedParsed);
+
+            const passed = actualCanonical === expectedCanonical;
 
             results.push({
-              passed: actual.trim() === testCase.output.trim(),
+              passed,
               input: testCase.input,
-              expected: testCase.output.trim(),
-              actual: actual.trim(),
+              expected: typeof expectedParsed === "object" ? JSON.stringify(expectedParsed) : String(testCase.output),
+              actual: typeof actualResolved === "object" ? JSON.stringify(actualResolved) : String(actualResolved),
             });
-          } catch {
+          } catch (err: any) {
+            const msg = err && err.stack ? `${err.message}\n${err.stack}` : String(err);
             results.push({
               passed: false,
               input: testCase.input,
               expected: testCase.output,
-              actual: "Runtime Error",
+              actual: `Runtime Error: ${msg}`
             });
           }
-        });
+        }
       } else {
+        // Non-JS languages are skipped in local runner
         toast({
           title: "Language Not Supported",
-          description: "Only JS runs locally.",
-          variant: "destructive",
+          description: "Only JavaScript execution is supported in this demo. Other languages will be evaluated on submission.",
+          variant: "destructive"
         });
-        testCases.forEach((tc) =>
+        testCases.forEach((testCase) => {
           results.push({
             passed: false,
-            input: tc.input,
-            expected: tc.output,
-            actual: "Skipped",
-          })
-        );
+            input: testCase.input,
+            expected: testCase.output,
+            actual: "Not executed (language not supported in test run)"
+          });
+        });
       }
 
       setTestResults(results);
+
+      const passedCount = results.filter(r => r.passed).length;
       toast({
         title: "Test Run Complete",
-        description: `${results.filter((r) => r.passed).length}/${results.length} passed`,
+        description: `${passedCount}/${results.length} test cases passed`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to run code",
+        variant: "destructive"
       });
     } finally {
       setIsRunning(false);
     }
   };
+  // ---------- end runCode ----------
 
   const handleSubmit = () => {
     if (testResults.length === 0) {
       toast({
         title: "Run Tests First",
-        description: "Execute tests before submitting.",
-        variant: "destructive",
+        description: "Please run your code against test cases before submitting",
+        variant: "destructive"
       });
       return;
     }
@@ -143,97 +196,67 @@ int main() {
     onSubmit(code, language, testResults);
   };
 
-  // ---------------- CAMERA / PROCTORING -----------------
-  const [headDir, setHeadDir] = useState("Unknown");
-  const [eyeDir, setEyeDir] = useState("Unknown");
-  const [proctorStatus, setProctorStatus] = useState("Normal");
-  const [cheatingCount, setCheatingCount] = useState(0);
+  useEffect(() => {
+    const initializeCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: 240, height: 180 } 
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          streamRef.current = stream;
+          setCameraEnabled(true);
+        }
 
-  const computeProctorStatus = (head: string, eyes: string) => {
-    if (head === "Chin Up" || head === "Chin Down" || eyes === "Looking Left" || eyes === "Looking Right") {
-      return "Cheating";
-    } else if (head !== "Straight" || eyes !== "Looking Center") {
-      return "Suspicious";
-    } else {
-      return "Normal";
-    }
-  };
+        // Load face detection model
+        const model = await blazeface.load();
+        modelRef.current = model;
+        setFaceDetectionStatus("ok");
+        setDetectionMessage("Face detected");
 
-  const sendFrameToBackend = async () => {
-    if (!videoRef.current) return;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = 240;
-    canvas.height = 180;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg"));
-    if (!blob) return;
-
-    const formData = new FormData();
-    formData.append("file", blob, "frame.jpg");
-
-    try {
-      const res = await fetch("http://localhost:8000/detect", { method: "POST", body: formData });
-      const data = await res.json();
-
-      const head = data.head_direction || "Unknown";
-      const eyes = data.eye_direction || "Unknown";
-
-      setHeadDir(head);
-      setEyeDir(eyes);
-
-      const status = computeProctorStatus(head, eyes);
-      setProctorStatus(status);
-
-      if (status === "Cheating") {
-        setCheatingCount((prev) => {
-          const updated = prev + 1;
-          if (updated > 5) {
-            toast({
-              title: "Test Terminated",
-              description: "Too many cheating attempts detected!",
-              variant: "destructive",
-            });
-            // Optionally disable further actions
+        // Start face detection
+        detectionIntervalRef.current = window.setInterval(async () => {
+          if (videoRef.current && modelRef.current) {
+            const predictions = await modelRef.current.estimateFaces(videoRef.current, false);
+            
+            if (predictions.length === 0) {
+              setFaceDetectionStatus("error");
+              setDetectionMessage("No face detected!");
+            } else if (predictions.length > 1) {
+              setFaceDetectionStatus("warning");
+              setDetectionMessage("Multiple faces detected!");
+            } else {
+              setFaceDetectionStatus("ok");
+              setDetectionMessage("Face detected");
+            }
           }
-          return updated;
+        }, 2000);
+
+      } catch (error) {
+        console.error("Error accessing camera:", error);
+        setFaceDetectionStatus("error");
+        setDetectionMessage("Camera access denied");
+        toast({
+          title: "Camera Required",
+          description: "Please enable camera access for proctoring",
+          variant: "destructive"
         });
       }
-    } catch (err) {
-      console.error("Proctoring fetch error:", err);
-      setHeadDir("Unknown");
-      setEyeDir("Unknown");
-      setProctorStatus("Error");
-    }
-  };
-
-  useEffect(() => {
-    const initCam = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 240, height: 180 } });
-        if (videoRef.current) videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-
-        detectionIntervalRef.current = window.setInterval(sendFrameToBackend, 2000);
-      } catch {
-        setHeadDir("Camera Error");
-        setEyeDir("Camera Error");
-        setProctorStatus("Error");
-      }
     };
 
-    initCam();
+    initializeCamera();
 
     return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      if (detectionIntervalRef.current) clearInterval(detectionIntervalRef.current);
+      // Cleanup
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+      }
     };
-  }, []);
+  }, [toast]);
 
   return (
     <div className="space-y-4">
@@ -250,46 +273,40 @@ int main() {
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2">
-          {/* Cheating Count Badge */}
-          <div
-            className={`px-3 py-1 rounded-md text-white font-medium transition-colors duration-300
-              ${cheatingCount > 5 ? "bg-red-600" : "bg-gray-600"}
-            `}
-          >
-            Cheating Count: {cheatingCount}
-          </div>
-
-          <Button onClick={runCode} disabled={isRunning} variant="outline" className="flex items-center gap-2">
-            <Play className="h-4 w-4" /> Run Tests
+        <div className="flex gap-2">
+          <Button onClick={runCode} disabled={isRunning} variant="outline">
+            <Play className="h-4 w-4 mr-2" />
+            Run Tests
           </Button>
-          <Button onClick={handleSubmit} disabled={isRunning}>Submit</Button>
+          <Button onClick={handleSubmit} disabled={isRunning}>
+            Submit Solution
+          </Button>
         </div>
       </div>
 
-      <Card className="relative overflow-hidden">
+      <Card className="overflow-hidden relative">
         <Editor
           height="400px"
           language={language}
           value={code}
-          onChange={(value) => setCode(value ?? "")}
+          onChange={(value) => setCode(value || "")}
           theme="vs-dark"
-          options={{ minimap: { enabled: false }, fontSize: 14, lineNumbers: "on", automaticLayout: true }}
+          options={{
+            minimap: { enabled: false },
+            fontSize: 14,
+            lineNumbers: "on",
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+          }}
         />
-
-        {/* Camera Feed */}
-        <div
-          className={`absolute top-4 right-4 w-64 h-48 rounded-xl overflow-hidden transition-all duration-300
-            border-4
-            ${proctorStatus === "Cheating" ? "border-red-600" : 
-              proctorStatus === "Suspicious" ? "border-orange-500" : 
-              "border-green-600"}
-            shadow-lg
-            ${proctorStatus === "Cheating" ? "shadow-red-600/50" : 
-              proctorStatus === "Suspicious" ? "shadow-orange-500/50" : 
-              "shadow-green-600/50"}
-          `}
-        >
+        
+        {/* Camera Feed Overlay */}
+        <div className="absolute top-4 right-4 w-60 h-45 bg-background border-2 rounded-lg overflow-hidden shadow-lg" 
+             style={{ 
+               borderColor: faceDetectionStatus === "ok" ? "hsl(var(--success))" : 
+                          faceDetectionStatus === "warning" ? "hsl(var(--warning))" : 
+                          "hsl(var(--destructive))" 
+             }}>
           <video
             ref={videoRef}
             autoPlay
@@ -297,19 +314,65 @@ int main() {
             muted
             className="w-full h-full object-cover"
           />
-
-          <div
-            className={`absolute top-2 left-2 px-2 py-1 text-xs rounded-md font-medium text-white
-              ${proctorStatus === "Cheating" ? "bg-red-600" :
-                proctorStatus === "Suspicious" ? "bg-orange-500" :
-                "bg-green-600"}
-              transition-colors duration-300
-            `}
-          >
-            {proctorStatus} • Head: {headDir}, Eyes: {eyeDir}
+          
+          {/* Status Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 bg-background/90 px-2 py-1 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1">
+              {faceDetectionStatus === "ok" ? (
+                <Check className="h-3 w-3 text-success" />
+              ) : faceDetectionStatus === "warning" ? (
+                <AlertTriangle className="h-3 w-3 text-warning" />
+              ) : (
+                <X className="h-3 w-3 text-destructive" />
+              )}
+              <span className={
+                faceDetectionStatus === "ok" ? "text-success" :
+                faceDetectionStatus === "warning" ? "text-warning" :
+                "text-destructive"
+              }>
+                {detectionMessage}
+              </span>
+            </div>
+            <Video className="h-3 w-3 text-muted-foreground" />
           </div>
         </div>
       </Card>
+
+      {testResults.length > 0 && (
+        <Card className="p-4">
+          <h3 className="font-semibold mb-4">Test Results</h3>
+          <div className="space-y-3">
+            {testResults.map((result, index) => (
+              <div
+                key={index}
+                className={`p-3 rounded-lg border ${
+                  result.passed ? "bg-success/10 border-success" : "bg-destructive/10 border-destructive"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {result.passed ? (
+                    <Check className="h-4 w-4 text-success" />
+                  ) : (
+                    <X className="h-4 w-4 text-destructive" />
+                  )}
+                  <span className="font-medium">Test Case {index + 1}</span>
+                </div>
+                <div className="text-sm space-y-1 ml-6">
+                  <div>
+                    <span className="text-muted-foreground">Input:</span> {result.input}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Expected:</span> {result.expected}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Actual:</span> {result.actual}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
