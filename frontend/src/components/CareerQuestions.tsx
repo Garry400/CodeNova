@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Code2, CheckCircle2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Question {
   id: string;
@@ -12,7 +12,7 @@ interface Question {
 }
 
 const CareerQuestions = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const questions: Question[] = [
     { id: "1", title: "Two Sum", difficulty: "easy", topics: ["Array", "Hash Table"], acceptanceRate: "49.2%" },
@@ -33,11 +33,7 @@ const CareerQuestions = () => {
   ];
 
   const handleQuestionClick = (question: Question) => {
-    toast({
-      title: "Opening Question",
-      description: `Redirecting to ${question.title}... (Code editor integration pending)`,
-    });
-    // TODO: Navigate to code editor with this question
+    navigate(`/career/${question.id}`);
   };
 
   const getDifficultyColor = (difficulty: string) => {
